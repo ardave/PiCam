@@ -24,7 +24,7 @@ let upload (memoryStream: MemoryStream) counter =
     let sw = Stopwatch.StartNew()
 
     let n = DateTime.UtcNow
-    let fileName = $"{n.Year}-{n.Month}-{n.Day} {n.Hour}:{n.Minute}.jpg"
+    let fileName = $"{n.Year}-{n.Month}-{n.Day} {n.Hour}:{n.Minute}:{n.Second}.jpg"
     let blobClient = blobContainerClient.GetBlobClient fileName
     let binaryData = BinaryData(memoryStream.ToArray())
     let result = blobClient.Upload binaryData
