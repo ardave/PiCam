@@ -5,6 +5,8 @@ open System
 open Azure.Storage.Blobs
 open MMALSharp.Handlers
 open MMALSharp
+open System.IO
+open MMALSharp.Common
 
 let private connectionStringEnvironmentVariableName = "AZURE_STORAGE_CONNECTION_STRING"
 let private containerName = "pi-cam-pictures"
@@ -18,13 +20,13 @@ let private connectionString =
 let private blobServiceClient = BlobServiceClient connectionString
 let private blobContainerClient = blobServiceClient.GetBlobContainerClient containerName
 
-let upload (imgBytes:ResizeArray<byte>) counter = 
+let upload (memoryStream: MemoryStream) counter = 
     let sw = Stopwatch.StartNew()
 
     let n = DateTime.UtcNow
     let fileName = $"{n.Year}-{n.Month}-{n.Day} {n.Hour}:{n.Minute}.jpg"
     let blobClient = blobContainerClient.GetBlobClient fileName
-    let binaryData = BinaryData imgBytes
+    let binaryData = BinaryData(memoryStream.ToArray())
     let result = blobClient.Upload binaryData
     let rawResponse = result.GetRawResponse()
     if rawResponse.IsError then
@@ -34,16 +36,15 @@ let upload (imgBytes:ResizeArray<byte>) counter =
 
 let private captureAndTransmitPicture (counter: int) =
     let sw = Stopwatch.StartNew()
-    use imgCaptureHandler = new InMemoryCaptureHandler()    
+    use imgCaptureHandler = new MemoryStreamCaptureHandler()    
 
-    imgCaptureHandler
-    |> MMALCamera.Instance.TakeRawPicture
+    MMALCamera.Instance.TakePicture(imgCaptureHandler, MMALEncoding.JPEG, MMALEncoding.I420)
     |> Async.AwaitTask
     |> Async.RunSynchronously
     
     printfn $"Captured image #%i{counter} in %i{sw.ElapsedMilliseconds} ms"
     
-    upload imgCaptureHandler.WorkingData counter
+    upload imgCaptureHandler.CurrentStream counter
 
 
 let piCamAgent = MailboxProcessor.Start(fun inbox->
