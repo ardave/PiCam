@@ -6,7 +6,6 @@ open Azure.Storage.Blobs
 open MMALSharp.Handlers
 open MMALSharp
 
-let private sw = Stopwatch()
 let private connectionStringEnvironmentVariableName = "AZURE_STORAGE_CONNECTION_STRING"
 let private containerName = "pi-cam-pictures"
 
@@ -21,29 +20,30 @@ let private blobContainerClientResponse = blobServiceClient.CreateBlobContainer 
 let private blobContainerClient = blobContainerClientResponse.Value
 
 let upload (imgBytes:ResizeArray<byte>) counter = 
-    let msg = sprintf $"Captured image #%i{counter} in %i{sw.ElapsedMilliseconds} ms" 
-    printfn "%s" msg
+    let sw = Stopwatch.StartNew()
 
     let n = DateTime.UtcNow
-    let filename = $"{n.Year}-{n.Month}-{n.Day} {n.Hour}:{n.Minute}.jpg"
-    let blobClient = blobContainerClient.GetBlobClient filename
+    let fileName = $"{n.Year}-{n.Month}-{n.Day} {n.Hour}:{n.Minute}.jpg"
+    let blobClient = blobContainerClient.GetBlobClient fileName
     let binaryData = BinaryData imgBytes
     let result = blobClient.Upload binaryData
     let rawResponse = result.GetRawResponse()
     if rawResponse.IsError then
-        ()
+        printfn $"Image Upload %s{fileName} failed in %i{sw.ElapsedMilliseconds} ms."
     else
-        ()
+        printfn $"Uploaded image %s{fileName} to Blob Storage in %i{sw.ElapsedMilliseconds} ms."
 
 let private captureAndTransmitPicture (counter: int) =
-    sw.Restart()
+    let sw = Stopwatch.StartNew()
     use imgCaptureHandler = new InMemoryCaptureHandler()    
 
     imgCaptureHandler
     |> MMALCamera.Instance.TakeRawPicture
     |> Async.AwaitTask
     |> Async.RunSynchronously
-
+    
+    printfn $"Captured image #%i{counter} in %i{sw.ElapsedMilliseconds} ms"
+    
     upload imgCaptureHandler.WorkingData counter
 
 
