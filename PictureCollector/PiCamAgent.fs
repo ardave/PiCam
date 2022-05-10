@@ -25,6 +25,7 @@ let upload (memoryStream: MemoryStream) counter =
 
     let n = DateTime.UtcNow
     let fileName = $"{n.Year}-{n.Month}-{n.Day} {n.Hour}:{n.Minute}:{n.Second}.jpg"
+    printfn "Uploading file: %s" fileName
     let blobClient = blobContainerClient.GetBlobClient fileName
     let binaryData = BinaryData(memoryStream.ToArray())
     let result = blobClient.Upload binaryData
@@ -50,6 +51,8 @@ let private captureAndTransmitPicture (counter: int) =
 let piCamAgent = MailboxProcessor.Start(fun inbox->
     let rec messageLoop() = async {
         let! counter = inbox.Receive()
+        if DateTime.UtcNow.Minute % 7 = 0 then
+            failwith "Random exception to see how the system recovers."
         captureAndTransmitPicture counter
         return! messageLoop()
         }

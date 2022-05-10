@@ -5,4 +5,4 @@ PiCamAgent.piCamAgent.Error.Add(fun ex -> printfn $"Unhandled exception in mailb
 
 for counter = 1 to Int32.MaxValue do
     PiCamAgent.piCamAgent.Post counter
-    10. |> TimeSpan.FromSeconds |> Thread.Sleep
+    1. |> TimeSpan.FromMinutes |> Thread.Sleep
