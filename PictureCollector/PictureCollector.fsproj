@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ResilientMailboxProcessor.fs" />
     <Compile Include="PiCamAgent.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

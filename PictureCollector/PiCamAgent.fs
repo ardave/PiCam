@@ -48,7 +48,7 @@ let private captureAndTransmitPicture (counter: int) =
     upload imgCaptureHandler.CurrentStream counter
 
 
-let piCamAgent = MailboxProcessor.Start(fun inbox->
+let piCamAgent = ResilientMailboxProcessor.ResilientMailbox<int>.Start(fun inbox->
     let rec messageLoop() = async {
         let! counter = inbox.Receive()
         if DateTime.UtcNow.Minute % 7 = 0 then
