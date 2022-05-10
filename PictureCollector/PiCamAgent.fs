@@ -16,8 +16,7 @@ let private connectionString =
         Environment.GetEnvironmentVariable connectionStringEnvironmentVariableName
 
 let private blobServiceClient = BlobServiceClient connectionString
-let private blobContainerClientResponse = blobServiceClient.CreateBlobContainer containerName
-let private blobContainerClient = blobContainerClientResponse.Value
+let private blobContainerClient = blobServiceClient.GetBlobContainerClient containerName
 
 let upload (imgBytes:ResizeArray<byte>) counter = 
     let sw = Stopwatch.StartNew()
